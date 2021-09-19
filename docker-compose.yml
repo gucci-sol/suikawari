@@ -1,0 +1,10 @@
+version: '3'
+services:
+  suikawari:
+    restart: always
+    build: .
+    container_name: 'suikawari'
+    working_dir: '/usr/src'
+    tty: true
+    volumes:
+      - ./src:/usr/src
