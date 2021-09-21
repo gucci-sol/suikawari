@@ -14,29 +14,29 @@ def main(stdscr):
       dir = d.input()
       if dir == curses.KEY_DOWN:
         if user.getYCoordinate() == field.getYUpper():
-          raise MoveError("下には進めません。")
-        user.moveUp()
+          raise DownwardMovementRestrictionError()
+        user.moveDown()
 
       elif dir == curses.KEY_RIGHT:
         if user.getXCoordinate() == field.getXUpper():
-          raise MoveError("右には進めません。")
+          raise RightwardMovementRestrictionError()
         user.moveRight()
 
       elif dir == curses.KEY_UP:
         if user.getYCoordinate() == field.getYLower():
-          raise MoveError("上には進めません。")
-        user.moveDown()
+          raise UpwardMovementRestrictionError()
+        user.moveUp()
 
       elif dir == curses.KEY_LEFT:
         if user.getXCoordinate() == field.getXLower():
-          raise MoveError("左には進めません。")
+          raise LeftwardMovementRestrictionError()
         user.moveLeft()
       else:
-        raise MoveError("入力が正しくありません。もう一度入力してください。")
+        raise InvalidOperationError()
 
       d.render(user, '')
 
-    except MoveError as e:
+    except Error as e:
       d.render(user, e.msg)
       continue
   else:
@@ -44,9 +44,29 @@ def main(stdscr):
     d.finish()
     time.sleep(3)
 
-class MoveError(Exception):
+class Error(Exception):
   def __init__(self, msg):
     self.msg = msg
+
+class UpwardMovementRestrictionError(Error):
+  def __init__(self):
+    super(UpwardMovementRestrictionError, self).__init__('上には進めません。')
+
+class DownwardMovementRestrictionError(Error):
+  def __init__(self):
+    super(DownwardMovementRestrictionError, self).__init__('下には進めません。')
+
+class LeftwardMovementRestrictionError(Error):
+  def __init__(self):
+    super(LeftwardMovementRestrictionError, self).__init__('左には進めません。')
+
+class RightwardMovementRestrictionError(Error):
+  def __init__(self):
+    super(RightwardMovementRestrictionError, self).__init__('右には進めません。')
+
+class InvalidOperationError(Error):
+  def __init__(self):
+    super(InvalidOperationError, self).__init__('入力が正しくありません。もう一度入力してください。')
 
 class Field():
   def __init__(self,x_range, y_range):
@@ -80,13 +100,13 @@ class User():
     return self.coordinate
 
   def moveUp(self):
-    self.coordinate = (self.getXCoordinate(), self.getYCoordinate() + 1)
+    self.coordinate = (self.getXCoordinate(), self.getYCoordinate() - 1)
 
   def moveRight(self):
     self.coordinate = (self.getXCoordinate() + 1, self.getYCoordinate())
 
   def moveDown(self):
-    self.coordinate = (self.getXCoordinate(), self.getYCoordinate() - 1)
+    self.coordinate = (self.getXCoordinate(), self.getYCoordinate() + 1)
 
   def moveLeft(self):
     self.coordinate = (self.getXCoordinate() - 1, self.getYCoordinate())
