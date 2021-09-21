@@ -7,30 +7,38 @@ def main(stdscr):
   user = User(0, 0)
   suika_position = (3, 3)
   d = Display(stdscr)
+  isHit = False
 
   d.render(user, '')
-  while user.getCoordinate() != suika_position:
+  while not isHit:
     try:
-      dir = d.input()
-      if dir == curses.KEY_DOWN:
+      input = d.input()
+      if input == curses.KEY_DOWN:
         if user.getYCoordinate() == field.getYUpper():
           raise DownwardMovementRestrictionError()
         user.moveDown()
 
-      elif dir == curses.KEY_RIGHT:
+      elif input == curses.KEY_RIGHT:
         if user.getXCoordinate() == field.getXUpper():
           raise RightwardMovementRestrictionError()
         user.moveRight()
 
-      elif dir == curses.KEY_UP:
+      elif input == curses.KEY_UP:
         if user.getYCoordinate() == field.getYLower():
           raise UpwardMovementRestrictionError()
         user.moveUp()
 
-      elif dir == curses.KEY_LEFT:
+      elif input == curses.KEY_LEFT:
         if user.getXCoordinate() == field.getXLower():
           raise LeftwardMovementRestrictionError()
         user.moveLeft()
+
+      elif input == 10:
+        if user.getCoordinate() != suika_position:
+          d.miss()
+          continue
+        isHit =True
+
       else:
         raise InvalidOperationError()
 
@@ -41,7 +49,7 @@ def main(stdscr):
       continue
   else:
     d.render(user, '')
-    d.finish()
+    d.success()
     time.sleep(3)
 
 class Error(Exception):
@@ -147,50 +155,20 @@ class Display():
   def input(self):
     return self.stdscr.getch()
   
-  def finish(self):
+  def success(self):
     # self.stdscr.clear()
     self.stdscr.move(2 * (5 + 2) + 1, 0)
     self.stdscr.deleteln()
     self.stdscr.addstr(2 * (5 + 2) + 1, 0, 'スイカが割れました！！')
     self.stdscr.refresh()
 
+  def miss(self):
+    self.stdscr.addstr(2 * (5 + 2), 0, 'ハズレ！！')
+    self.stdscr.refresh()
+
 if __name__ == "__main__":
-  # main()
-  # display()
   curses.wrapper(main)
-  # try:
-  #   count = 0
-  #   while count != 3:
-
-  #     stdscr = curses.initscr()
-  #     # curses.noecho()
-  #     # dir = input("input: ")
-  #     dir = stdscr.getkey()
-  #     if dir == "n":
-  #       count += 1
-  #     if dir == "m":
-  #       count -= 1
-
-  #     stdscr.clear()
-  #     for x in range(0, 5):
-  #       stdscr.addstr(2 * x, 0, '  ------------------------')
-  #       if count == x:
-  #         stdscr.addstr(2 * x + 1, 0, '%s | ● |   |   |   |   |   |' % x)
-  #       else:
-  #         stdscr.addstr(2 * x + 1, 0, '%s |   |   |   |   |   |   |' % x)
-
-  #     stdscr.addstr(2 * (5 + 1), 0, '  ------------------------')
-  #     stdscr.refresh()
-  #     # time.sleep(10)
-  # except Exception as e:
-  #   print("aaaaa", e)
-  #   # Exception by Ctrl + C
-  #   pass
-  # finally:
-  #   curses.echo()
-  #   curses.endwin()
 
   # 進む数の制限
-  # エンターキーで棒を振る
   # 棒を振る数の制限
   # レベル選択
