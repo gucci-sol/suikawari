@@ -6,7 +6,7 @@ import random
 def main(stdscr):
   field = Field((0, 5), (0, 5))
   user = User(0, 0)
-  suika_position = (random.randrange(5), random.randrange(5))
+  suika_position = (random.randrange(6), random.randrange(6))
   d = Display(stdscr)
   isHit = False
   upperLimitOfWavingStickCount = 3
