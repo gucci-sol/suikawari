@@ -1,16 +1,17 @@
 import sys
 import curses
 import time
+import random
 
 def main(stdscr):
   field = Field((0, 5), (0, 5))
   user = User(0, 0)
-  suika_position = (3, 3)
+  suika_position = (random.randrange(5), random.randrange(5))
   d = Display(stdscr)
   isHit = False
   upperLimitOfWavingStickCount = 3
 
-  d.render(user, '', str(upperLimitOfWavingStickCount))
+  d.render(user, '', str(upperLimitOfWavingStickCount), None)
   while not isHit and upperLimitOfWavingStickCount > 0:
     try:
       input = d.input()
@@ -44,17 +45,16 @@ def main(stdscr):
       else:
         raise InvalidOperationError()
 
-      d.render(user, '', str(upperLimitOfWavingStickCount))
+      d.render(user, '', str(upperLimitOfWavingStickCount), None)
 
     except Error as e:
-      d.render(user, e.msg, str(upperLimitOfWavingStickCount))
+      d.render(user, e.msg, str(upperLimitOfWavingStickCount), None)
       continue
   else:
+    d.render(user, '', str(upperLimitOfWavingStickCount), suika_position)
     if not isHit and upperLimitOfWavingStickCount == 0:
       d.gameOverByUpperLimitOfWavingStick()
       return
-
-    d.render(user, '', str(upperLimitOfWavingStickCount))
     d.success()
 
 class Error(Exception):
@@ -129,7 +129,7 @@ class Display():
     self.stdscr.keypad(True)
   #   curses.noecho()
 
-  def render(self, user, errMsg, upperLimitOfWavingStickCount):
+  def render(self, user, errMsg, upperLimitOfWavingStickCount, suikaPosition):
     try:
       self.stdscr.clear()
       border = '-'
@@ -141,6 +141,8 @@ class Display():
         for x in range(0, 6):
           if user.getCoordinate() == (x, y):
             row += "| ● "
+          elif suikaPosition is not None and suikaPosition == (x, y):
+            row += "| 🍉 "
           else:
             row += "|   "
 
@@ -186,5 +188,5 @@ if __name__ == "__main__":
   curses.wrapper(main)
 
   # レベル選択
-  # スイカのポジションをランダムに
   # リファクタ
+  # ヒント機能（掛け声）もっと左とか
