@@ -8,9 +8,10 @@ def main(stdscr):
   suika_position = (3, 3)
   d = Display(stdscr)
   isHit = False
+  upperLimitOfWavingStickCount = 3
 
-  d.render(user, '')
-  while not isHit:
+  d.render(user, '', str(upperLimitOfWavingStickCount))
+  while not isHit and upperLimitOfWavingStickCount > 0:
     try:
       input = d.input()
       if input == curses.KEY_DOWN:
@@ -33,7 +34,8 @@ def main(stdscr):
           raise LeftwardMovementRestrictionError()
         user.moveLeft()
 
-      elif input == 10:
+      elif input == 10: # エンターキーを押下した場合
+        upperLimitOfWavingStickCount -= 1
         if user.getCoordinate() != suika_position:
           d.miss()
           continue
@@ -42,15 +44,18 @@ def main(stdscr):
       else:
         raise InvalidOperationError()
 
-      d.render(user, '')
+      d.render(user, '', str(upperLimitOfWavingStickCount))
 
     except Error as e:
-      d.render(user, e.msg)
+      d.render(user, e.msg, str(upperLimitOfWavingStickCount))
       continue
   else:
-    d.render(user, '')
+    if not isHit and upperLimitOfWavingStickCount == 0:
+      d.gameOverByUpperLimitOfWavingStick()
+      return
+
+    d.render(user, '', str(upperLimitOfWavingStickCount))
     d.success()
-    time.sleep(3)
 
 class Error(Exception):
   def __init__(self, msg):
@@ -93,7 +98,6 @@ class Field():
   def getYUpper(self):
     return self.y_range[1]
 
-
 class User():
   def __init__(self, x_coordinate, y_coordinate):
     self.coordinate = (x_coordinate, y_coordinate)
@@ -125,7 +129,7 @@ class Display():
     self.stdscr.keypad(True)
   #   curses.noecho()
 
-  def render(self, user, errMsg):
+  def render(self, user, errMsg, upperLimitOfWavingStickCount):
     try:
       self.stdscr.clear()
       border = '-'
@@ -144,7 +148,11 @@ class Display():
         self.stdscr.addstr(2 * y + 1, 0, row)
       self.stdscr.addstr(2 * (5 + 1), 0, border)
 
-      self.stdscr.addstr(2 * (5 + 2), 0, errMsg)
+      if errMsg == '':
+        self.stdscr.addstr(2 * (5 + 2), 0, '棒を振ることができる残り回数：' + str(upperLimitOfWavingStickCount))
+      else:
+        self.stdscr.addstr(2 * (5 + 2), 0, errMsg)
+        
       self.stdscr.addstr(2 * (5 + 2) + 1, 0, 'どちらに進みますか？ n:上　e:右 s:下 w:左')
 
       self.stdscr.refresh()
@@ -156,19 +164,27 @@ class Display():
     return self.stdscr.getch()
   
   def success(self):
-    # self.stdscr.clear()
     self.stdscr.move(2 * (5 + 2) + 1, 0)
     self.stdscr.deleteln()
     self.stdscr.addstr(2 * (5 + 2) + 1, 0, 'スイカが割れました！！')
     self.stdscr.refresh()
+    time.sleep(3)
 
   def miss(self):
+    self.stdscr.move(2 * (5 + 2), 0)
+    self.stdscr.deleteln()
+    self.stdscr.insertln()
     self.stdscr.addstr(2 * (5 + 2), 0, 'ハズレ！！')
     self.stdscr.refresh()
+
+  def gameOverByUpperLimitOfWavingStick(self):
+    self.stdscr.addstr(2 * (5 + 2), 0, '棒を振ることができる回数が上限に達しました。ゲーム終了！！')
+    self.stdscr.refresh()
+    time.sleep(3)
 
 if __name__ == "__main__":
   curses.wrapper(main)
 
-  # 進む数の制限
-  # 棒を振る数の制限
   # レベル選択
+  # スイカのポジションをランダムに
+  # リファクタ
